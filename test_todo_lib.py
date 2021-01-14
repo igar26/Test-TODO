@@ -2,7 +2,8 @@ import logging
 import http.client
 module_logger = logging.getLogger('TEST TODO APPLICATION')
 # Not using this to get better practice with selenium webdriver API
-#from bs4 import BeautifulSoup 
+from bs4 import BeautifulSoup 
+# Can use find_elements_by_css_selector for most of the web elements but prefer practicing all
 
 def checkServer(host="localhost", port=3000):
 
@@ -27,6 +28,19 @@ def checkServer(host="localhost", port=3000):
     return False
 
 
+def get_elements_after_compare(l1, l2):
+    """
+    This function returns the difference between two lists.
+    """
+    # NOTE: I could not use dict or set as the code gets too complicated also there are no uniquie 
+    # elemets to create a dictionary in the todo-item
+    # Also todo list can contain same elements multiple times, so the best way is to 
+    # use list
+    ml = l1 if len(l1) > len(l2) else l2
+    sl = l2 if ml == l1 else l1
+    diff = [item for item in ml if not item in sl]
+    return diff
+
 class ToDoAppPage:
     
     URL = 'http://localhost:3000/'
@@ -36,6 +50,7 @@ class ToDoAppPage:
         self.total_tasks = 0
         self.total_done_task = 0
         self.total_undone_task = 0
+        self.current_task_state_in_page = list()
 
     def load(self):
         """
@@ -130,6 +145,78 @@ class ToDoAppPage:
         add_button = [x.text for x in self.browser.find_elements_by_xpath("//button[@class='submit']")]
         assert len(add_button) == 1
         assert add_button.count('+') == 1
-        print([x.text for x in self.browser.find_elements_by_xpath("//form[@class='form-inline']")])
-        print(self.get_page_info_by_class(header="submit").text)
         return True
+    
+    def get_page_state(self):
+        """
+        This function is used to get each tasks item and store it in a dictionary.
+        params: None
+        """
+        module_logger.debug("This function collects all the tasks from the page and return the state as dictionary")
+        elemnts = self.browser.find_elements_by_css_selector('li.Todo-item')
+        self.current_task_state_in_page = list()
+        for ele in elemnts:
+            task_state = ele.find_element_by_css_selector('span.icon').text
+            task_name = ele.find_element_by_css_selector('div').text.strip()
+            self.current_task_state_in_page.append([task_name, "done" if "X" in  task_state else "undone"])
+        return self.current_task_state_in_page
+    
+
+class TaskAction(ToDoAppPage):
+
+    def __init__(self, browser):
+
+        super(TaskAction, self).__init__(browser)
+    
+    def add_task(self, task_name):
+        """
+        This function is used to add a new task.
+        params: None
+        """
+        if not isinstance(task_name, str):
+            raise AttributeError
+
+        module_logger.debug("This function adds task: {}".format(task_name))
+        add_ele = self.browser.find_element_by_tag_name("input")
+        add_ele.send_keys(task_name)
+        find_ele = self.browser.find_element_by_class_name("submit")
+        find_ele.submit()
+        module_logger.debug("Check added task {} is visible to the user".format(task_name))
+        find_ele.is_displayed()
+    
+    def change_task(self, task_name, state='done'):
+        """
+        This function is used to change the task state to done.
+        params: None
+        """
+        if not isinstance(task_name, str):
+            raise AttributeError
+        
+        if not state in ["done", "undone"]:
+            raise AttributeError
+
+        module_logger.debug("This function changes task to done: {}".format(task_name))
+        add_ele = self.browser.find_element_by_xpath("//li[@class='Todo-item']")
+        self.browser.execute_script("arguments[0].setAttribute('class','{0}')".format(state), add_ele)
+        self.browser.execute_script("arguments[0].setAttribute('class','{0}')".format(state), add_ele)
+        #add_ele.click()
+        """
+        # NOTE - Elemets are added to the top of the list always
+        add_ele = self.browser.find_element_by_xpath('//div[contains(text(), "{0}")]'.format(task_name))
+        #add_ele = self.browser.find_element_by_xpath("//li[@class='Todo-item']")
+        h = add_ele.get_attribute('outerHTML')
+        soup1 = BeautifulSoup(h, 'html.parser').span
+        soup = BeautifulSoup(h, 'html.parser').div
+        soup1.string = "[X]"
+        soup['class'] = "done"
+        print("###", soup)
+        print("###", soup1)
+        add_ele.click()
+        #self.browser.execute_script("arguments[0].class = 'done';", add_ele)
+        #self.browser.execute_script("arguments[0].setAttribute('class','{0}')".format(state), add_ele)
+        input("PE")
+        """
+
+
+
+        
