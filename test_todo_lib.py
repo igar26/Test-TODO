@@ -186,7 +186,7 @@ class TaskAction(ToDoAppPage):
             find_ele.submit()
             module_logger.debug("Check added task {} is visible to the user".format(task))
             if is_display_flag:
-                find_ele.is_displayed()
+                assert find_ele.is_displayed() == True
     
     def change_task(self, task_name=[], all=False):
         """
@@ -205,13 +205,13 @@ class TaskAction(ToDoAppPage):
                     if name == task:
                         ele.find_element_by_css_selector('span.icon').click()
                         if is_display_flag:
-                            ele.is_displayed()
+                            assert ele.is_displayed() == True
                         break
         else:
             for ele in elemnts:
                 ele.find_element_by_css_selector('span.icon').click()
                 if is_display_flag:
-                    ele.is_displayed()
+                    assert ele.is_displayed() == True
 
     # NOTE: This can change and delete can be combined for user readability its maintained in different function
     def delete_task(self, task_name=[], all=False):
@@ -231,12 +231,33 @@ class TaskAction(ToDoAppPage):
                     if name == task:
                         ele.find_element_by_css_selector('button').click()
                         if is_display_flag:
-                            ele.is_displayed()
+                            assert ele.is_displayed() == True
                         break
         else:
             for ele in elemnts:
                 ele.find_element_by_css_selector('button').click()
                 if is_display_flag:
-                        ele.is_displayed()
+                        assert ele.is_displayed() == True
+    
+    def screentshot_task(self, task_name):
+        """
+        This function is used to take a screenshot of a particular element.
+        params: task_name: Task to be used to take a screenshot
+        """
+        if not isinstance(task_name, str):
+            raise AttributeError
+
+        elemnts = self.browser.find_elements_by_css_selector('li.Todo-item')
+        try:
+            if not all:
+                for ele in elemnts:
+                    name = ele.find_element_by_css_selector('div').text.strip()
+                    if name == task_name:
+                        assert ele.find_element_by_css_selector('div').screenshot("~/name-{}.png".format(random_choice(range(0, 100)))) == True
+                        break
+        # Need to remove the screenshot file to be done
+        finally:
+            pass
+        
 
         

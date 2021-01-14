@@ -88,6 +88,7 @@ def test_basic_page(browser):
         result["TEST_CASE1"] = "PASSED"
     except Exception as e:
         logger.error("test_basic_page failed due to ERROR: " + str(e))
+        result["TEST_CASE1"] = "FAILED"
         raise e
 
 
@@ -108,6 +109,7 @@ def test_check_add_task(browser):
 
     except Exception as e:
         logger.error("test_check_add_task failed due to ERROR: " + str(e))
+        result["TEST_CASE1"] = "FAILED"
         raise e
 
 
@@ -134,17 +136,23 @@ def test_check_add_task_special_char(browser):
         logger.info("Add the same task again and check it works fine")
         add_task_test(test_page, task="\"its a task with space\"")
         #FIXME- Wrapping is not working - need to debug further
+        logger.info("Add a task with really long task name with spaces")
         add_task_test(test_page, task="\"really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long\"")
         logger.info("Add the same task again and check it works fine")
         add_task_test(test_page, task="\"really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long task really long\"")
+        logger.info("Add a task with really long task name without any spaces")
+        add_task_test(test_page, task="\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"")
+        logger.info("Add the same task again and check it works fine")
+        add_task_test(test_page, task="\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"")
 
         result["TEST_CASE3"] = "PASSED"
 
     except Exception as e:
         logger.error("test_check_add_task failed due to ERROR: " + str(e))
+        result["TEST_CASE3"] = "FAILED"
         raise e
 
-@pytest.mark.skip(reason="no way of currently testing this as we cannot delete more than one task")
+#@pytest.mark.skip(reason="no way of currently testing this as we cannot delete more than one task")
 def test_delete_task(browser):
     """
     This test case is used to delete all tasks on the page
@@ -160,9 +168,10 @@ def test_delete_task(browser):
 
     except Exception as e:
         logger.error("test_check_add_task failed due to ERROR: " + str(e))
+        result["TEST_CASE4"] = "FAILED"
         raise e
 
-@pytest.mark.skip(reason="no way of currently testing this as page crashs")
+#@pytest.mark.skip(reason="no way of currently testing this as page crashs")
 def test_funcitonal_to_add_delete_modify_task(browser):
     """
     This test case is used to test whether add/modify/delate actions work as expected
@@ -193,6 +202,7 @@ def test_funcitonal_to_add_delete_modify_task(browser):
 
     except Exception as e:
         logger.error("test_check_add_task failed due to ERROR: " + str(e))
+        result["TEST_CASE5"] = "FAILED"
         raise e
 
 
@@ -227,9 +237,46 @@ def test_performance_to_add_delete_modify_task(browser):
         logger.info("Delete tall 100 tasks")
         test_page.delete_task(task_name=task_list)
 
+        for _ in range(0, 3):
+            logger.info("Now try adding a 100 new task and delete it wihout modifying it")
+            test_page.add_task(task_name=task_list)
+            logger.info("Try deleting all the 100 tasks")
+            test_page.delete_task(task_name=task_list)
 
         result["TEST_CASE6"] = "PASSED"
 
     except Exception as e:
         logger.error("test_check_add_task failed due to ERROR: " + str(e))
+        result["TEST_CASE6"] = "FAILED"
         raise e
+
+# Dont know if this is necessary - had to fix it.
+def test_screenshot(browser):
+    """
+    This test case is used to check whether we aree able to take a screen shot without any I/O ERROR.
+    """
+    try:
+
+        logger.info("5. Verify the application is up and running")
+        assert test_todo_lib.checkServer() == True
+        test_page = test_todo_lib.TaskAction(browser)
+        test_page.load()
+        logger.info("Add 100 new task to the page, modify all and then delete all the tasks")
+        logger.info("Add a 100 new task to the page")
+        task_list = ["task"+str(i) for i in range(0, 100)]
+        test_page.add_task(task_name=task_list)
+        logger.info("Modify all 100 tasks")
+        test_page.change_task(task_name=task_list)
+        logger.info("Try to take a screenshot of the page, there should be no I/O Error")
+        test_page.screentshot_task(task_name="task8")
+        result["TEST_CASE7"] = "PASSED"
+
+    except Exception as e:
+        logger.error("test_check_add_task failed due to ERROR: " + str(e))
+        result["TEST_CASE7"] = "FAILED"
+        raise e
+
+def test_screen_shot():
+    print("", end="\n")
+    for r in result:
+        print(str(r) +"............................" + result[r], end="\n")
