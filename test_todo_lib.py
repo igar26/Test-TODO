@@ -1,9 +1,11 @@
 import logging
 import http.client
+import os
 module_logger = logging.getLogger('TEST TODO APPLICATION')
 # Not using this to get better practice with selenium webdriver API
-from bs4 import BeautifulSoup 
+# from bs4 import BeautifulSoup 
 # Can use find_elements_by_css_selector for most of the web elements but prefer practicing all
+is_display_flag = True if os.environ.get('DISPLAY_CHANGES') == "True" else False
 
 def checkServer(host="localhost", port=3000):
 
@@ -171,52 +173,70 @@ class TaskAction(ToDoAppPage):
     def add_task(self, task_name):
         """
         This function is used to add a new task.
-        params: None
+        params: task_name: Task to be added, can be passed as  a list or string
         """
-        if not isinstance(task_name, str):
-            raise AttributeError
+        if not isinstance(task_name, list):
+            task_name = [task_name]
 
-        module_logger.debug("This function adds task: {}".format(task_name))
-        add_ele = self.browser.find_element_by_tag_name("input")
-        add_ele.send_keys(task_name)
-        find_ele = self.browser.find_element_by_class_name("submit")
-        find_ele.submit()
-        module_logger.debug("Check added task {} is visible to the user".format(task_name))
-        find_ele.is_displayed()
+        for task in task_name:
+            module_logger.debug("Adds task: {}".format(task))
+            add_ele = self.browser.find_element_by_tag_name("input")
+            add_ele.send_keys(task)
+            find_ele = self.browser.find_element_by_class_name("submit")
+            find_ele.submit()
+            module_logger.debug("Check added task {} is visible to the user".format(task))
+            if is_display_flag:
+                find_ele.is_displayed()
     
-    def change_task(self, task_name, state='done'):
+    def change_task(self, task_name=[], all=False):
         """
-        This function is used to change the task state to done.
-        params: None
+        This function is used to modify any/all task/tasks state to done/undone.
+        params: task_name: Task to be modified, can be passed as  a list or string
+                all = True: If user needs to change the state of all the tasks
         """
-        if not isinstance(task_name, str):
-            raise AttributeError
-        
-        if not state in ["done", "undone"]:
-            raise AttributeError
+        if not isinstance(task_name, list):
+            task_name = [task_name]
 
-        module_logger.debug("This function changes task to done: {}".format(task_name))
-        add_ele = self.browser.find_element_by_xpath("//li[@class='Todo-item']")
-        self.browser.execute_script("arguments[0].setAttribute('class','{0}')".format(state), add_ele)
-        self.browser.execute_script("arguments[0].setAttribute('class','{0}')".format(state), add_ele)
-        #add_ele.click()
-        """
-        # NOTE - Elemets are added to the top of the list always
-        add_ele = self.browser.find_element_by_xpath('//div[contains(text(), "{0}")]'.format(task_name))
-        #add_ele = self.browser.find_element_by_xpath("//li[@class='Todo-item']")
-        h = add_ele.get_attribute('outerHTML')
-        soup1 = BeautifulSoup(h, 'html.parser').span
-        soup = BeautifulSoup(h, 'html.parser').div
-        soup1.string = "[X]"
-        soup['class'] = "done"
-        print("###", soup)
-        print("###", soup1)
-        add_ele.click()
-        #self.browser.execute_script("arguments[0].class = 'done';", add_ele)
-        #self.browser.execute_script("arguments[0].setAttribute('class','{0}')".format(state), add_ele)
-        input("PE")
-        """
+        elemnts = self.browser.find_elements_by_css_selector('li.Todo-item')
+        if not all:
+            for task in task_name:
+                for ele in elemnts:
+                    name = ele.find_element_by_css_selector('div').text.strip()
+                    if name == task:
+                        ele.find_element_by_css_selector('span.icon').click()
+                        if is_display_flag:
+                            ele.is_displayed()
+                        break
+        else:
+            for ele in elemnts:
+                ele.find_element_by_css_selector('span.icon').click()
+                if is_display_flag:
+                    ele.is_displayed()
 
+    # NOTE: This can change and delete can be combined for user readability its maintained in different function
+    def delete_task(self, task_name=[], all=False):
+        """
+        This function is used to delete any/all task/tasks.
+        params: task_name: Task to be deleted, can be passed as  a list or string
+                all = True: If user needs to delete all the tasks
+        """
+        if not isinstance(task_name, list):
+            task_name = [task_name]
 
+        elemnts = self.browser.find_elements_by_css_selector('li.Todo-item')
+        if not all:
+            for task in task_name:
+                for ele in elemnts:
+                    name = ele.find_element_by_css_selector('div').text.strip()
+                    if name == task:
+                        ele.find_element_by_css_selector('button').click()
+                        if is_display_flag:
+                            ele.is_displayed()
+                        break
+        else:
+            for ele in elemnts:
+                ele.find_element_by_css_selector('button').click()
+                if is_display_flag:
+                        ele.is_displayed()
 
         
