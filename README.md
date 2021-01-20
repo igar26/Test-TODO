@@ -9,3 +9,4 @@
 2) The logs will be generated and stored in todo.log file.
 3) TO run the module please use "pytest todo_tests.py --capture=tee-sys".
 4) Cross browser testing can be done using pytest-xdist, but we are not using it now as it needs a special license. 
+5) Webdriver for chrome is available here: https://chromedriver.chromium.org/downloads (make user its in /usr/local/bin/)
